@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        #calculadora-rescisao {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .button-container {
+            margin-top: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            color: white;
+            background-color: #28a745;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #resultado {
+            margin-top: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+
+    <div id="calculadora-rescisao">
+        <h2>Calculadora de Rescisão Trabalhista</h2>
+
+        <label for="salario">Salário Mensal (R$):</label>
+        <input type="number" id="salario" placeholder="Digite seu salário">
+
+        <label for="tempo">Tempo de Serviço (meses):</label>
+        <input type="number" id="tempo" placeholder="Quantos meses trabalhou?">
+
+        <label for="aviso">Recebe Aviso Prévio?</label>
+        <select id="aviso">
+            <option value="sim">Sim</option>
+            <option value="nao">Não</option>
+        </select>
+
+        <div class="button-container">
+            <button onclick="calcularRescisao()">Calcular Rescisão</button>
+            <button onclick="gerarPDF()">Baixar PDF</button>
+        </div>
+
+        <h3>Resultado:</h3>
+        <p id="resultado"></p>
+    </div>
+
+    <script>
+        function calcularRescisao() {
+            let salario = parseFloat(document.getElementById('salario').value);
+            let tempo = parseInt(document.getElementById('tempo').value);
+            let aviso = document.getElementById('aviso').value;
+            
+            if (isNaN(salario) || isNaN(tempo) || tempo <= 0 || salario <= 0) {
+                document.getElementById('resultado').innerHTML = "Preencha os valores corretamente!";
+                return;
+            }
+
+            let feriasProporcionais = (salario / 12) * (tempo / 3);
+            let decimoTerceiro = (salario / 12) * (tempo % 12);
+            let avisoPrevio = aviso === "sim" ? salario : 0;
+            let fgts = salario * 0.08 * tempo;
+            let multaFgts = fgts * 0.4;
+
+            let total = feriasProporcionais + decimoTerceiro + avisoPrevio + fgts + multaFgts;
+
+            document.getElementById('resultado').innerHTML = `
+                <strong>Total a Receber: R$ ${total.toFixed(2)}</strong><br>
+                - Férias Proporcionais: R$ ${feriasProporcionais.toFixed(2)}<br>
+                - 13º Salário Proporcional: R$ ${decimoTerceiro.toFixed(2)}<br>
+                - Aviso Prévio: R$ ${avisoPrevio.toFixed(2)}<br>
+                - FGTS: R$ ${fgts.toFixed(2)}<br>
+                - Multa de 40% do FGTS: R$ ${multaFgts.toFixed(2)}
+            `;
+        }
+
+        function gerarPDF() {
+        let { jsPDF } = window.jspdf;
+        let doc = new jsPDF();
+
+        let pageWidth = doc.internal.pageSize.width;
+
+        let title = "Bem-vindo ao iControl Web";
+        let subtitle = "Seu dinheiro no controle, sua vida em equilíbrio.";
+        let website = "iControlweb.com.br";
+
+        // Título em negrito e maior
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.text(title, pageWidth / 2, 15, { align: "center" });
+
+        // Subtítulo
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(12);
+        doc.text(subtitle, pageWidth / 2, 25, { align: "center" });
+
+        // Link do site clicável
+        doc.setTextColor(0, 0, 255); // Azul para indicar link
+        doc.textWithLink(website, pageWidth / 2, 35, { align: "center" }, "https://icontrolweb.com.br");
+        doc.setTextColor(0, 0, 0); // Retorna a cor do texto ao normal
+
+        doc.line(10, 40, 200, 40); // Linha divisória
+
+        doc.text("Cálculo de Rescisão Trabalhista", 10, 50);
+        doc.text(`Salário: R$ ${document.getElementById('salario').value}`, 10, 60);
+        doc.text(`Tempo de Serviço: ${document.getElementById('tempo').value} meses`, 10, 70);
+        doc.text(`Aviso Prévio: ${document.getElementById('aviso').value}`, 10, 80);
+        doc.text("Detalhes:", 10, 90);
+        doc.text(document.getElementById('resultado').innerText, 10, 100);
+
+        doc.save("rescisao_calculo.pdf");
+    }
+
+    </script>
+
+    
+</body>
+</html>
