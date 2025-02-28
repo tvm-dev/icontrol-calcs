@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Valor Final com Multas e Juros de Atraso</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #fffcfc;
+      color: rgb(0, 0, 0);
+    }
+    .calculator-container {
+      background: rgba(254, 253, 253, 0.1);
+      padding: 60px 40px;
+      border-radius: 15px;
+      box-shadow: 8px 8px 15px rgba(255, 255, 255, 0.1), -8px -8px 15px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(15px);
+      width: 500px;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+      border: 2px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #6e62ff;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 10px;
+      background: #eeebeb;
+      border: 2px solid #03020e;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Valor Final com Multas e Juros de Atraso</h1>
+    <form id="multas-juros-form">
+      <div class="input-group">
+        <label for="valor-original">Valor Original (R$):</label>
+        <input type="number" id="valor-original" placeholder="Ex: 1000" required>
+      </div>
+      <div class="input-group">
+        <label for="dias-atraso">Dias de Atraso:</label>
+        <input type="number" id="dias-atraso" placeholder="Ex: 15" required>
+      </div>
+      <div class="input-group">
+        <label for="percentual-multa">Percentual de Multa (%):</label>
+        <input type="number" id="percentual-multa" placeholder="Ex: 2" required>
+      </div>
+      <div class="input-group">
+        <label for="percentual-juros">Percentual de Juros ao Dia (%):</label>
+        <input type="number" id="percentual-juros" placeholder="Ex: 0.5" required>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular</button>
+        <button type="button" id="save-pdf" style="display: none;">Salvar em PDF</button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Valor da Multa:</strong> R$ <span id="valor-multa"></span></p>
+      <p><strong>Valor dos Juros:</strong> R$ <span id="valor-juros"></span></p>
+      <p><strong>Valor Final com Multas e Juros:</strong> R$ <span id="valor-final"></span></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('multas-juros-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const valorOriginal = parseFloat(document.getElementById('valor-original').value);
+      const diasAtraso = parseInt(document.getElementById('dias-atraso').value);
+      const percentualMulta = parseFloat(document.getElementById('percentual-multa').value) / 100;
+      const percentualJuros = parseFloat(document.getElementById('percentual-juros').value) / 100;
+
+      if (isNaN(valorOriginal) || isNaN(diasAtraso) || isNaN(percentualMulta) || isNaN(percentualJuros) || 
+          valorOriginal <= 0 || diasAtraso < 0 || percentualMulta < 0 || percentualJuros < 0) {
+        alert("Por favor, insira valores válidos.");
+        return;
+      }
+
+      // Cálculo do valor da multa
+      const valorMulta = valorOriginal * percentualMulta;
+
+      // Cálculo do valor dos juros
+      const valorJuros = valorOriginal * percentualJuros * diasAtraso;
+
+      // Cálculo do valor final
+      const valorFinal = valorOriginal + valorMulta + valorJuros;
+      const valorMultaFixado = valorMulta.toFixed(2);
+      const valorJurosFixado = valorJuros.toFixed(2);
+      const valorFinalFixado = valorFinal.toFixed(2);
+
+      // Atualizar os resultados
+      document.getElementById('valor-multa').textContent = valorMultaFixado;
+      document.getElementById('valor-juros').textContent = valorJurosFixado;
+      document.getElementById('valor-final').textContent = valorFinalFixado;
+
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('save-pdf').style.display = 'block';
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+
+      doc.setFillColor(110, 98, 255);
+      doc.rect(0, 0, pageWidth, 50, 'F');
+      doc.setFontSize(22);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Relatório de Multas e Juros", pageWidth / 2, 30, { align: "center" });
+
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      let yPosition = 70;
+      doc.text("Valor Original: R$ " + document.getElementById('valor-original').value, 40, yPosition);
+      doc.text("Dias de Atraso: " + document.getElementById('dias-atraso').value, 40, yPosition + 15);
+      doc.text("Percentual de Multa: " + document.getElementById('percentual-multa').value + "%", 40, yPosition + 30);
+      doc.text("Percentual de Juros ao Dia: " + document.getElementById('percentual-juros').value + "%", 40, yPosition + 45);
+      doc.text("Valor da Multa: R$ " + document.getElementById('valor-multa').textContent, 40, yPosition + 60);
+      doc.text("Valor dos Juros: R$ " + document.getElementById('valor-juros').textContent, 40, yPosition + 75);
+      doc.text("Valor Final com Multas e Juros: R$ " + document.getElementById('valor-final').textContent, 40, yPosition + 90);
+
+      doc.save("relatorio_multas_juros.pdf");
+    });
+  </script>
+</body>
+</html>

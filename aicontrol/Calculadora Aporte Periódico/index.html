@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Aporte Periódico</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #fffcfc;
+      color: rgb(0, 0, 0);
+    }
+    .calculator-container {
+      background: rgba(254, 253, 253, 0.1);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 8px 8px 15px rgba(255, 255, 255, 0.1), -8px -8px 15px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(15px);
+      width: 350px;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+      border: 2px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #6e62ff;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 10px;
+      background: #eeebeb;
+      border: 2px solid #03020e;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Aporte Periódico</h1>
+    <form id="aporte-form">
+      <div class="input-group">
+        <label for="aporte">Aporte Periódico (R$):</label>
+        <input type="number" id="aporte" placeholder="Ex: 1000" required>
+      </div>
+      <div class="input-group">
+        <label for="taxa">Taxa de Juros (% ao ano):</label>
+        <input type="number" id="taxa" placeholder="Ex: 10" required>
+      </div>
+      <div class="input-group">
+        <label for="periodos">Períodos (Anos):</label>
+        <input type="number" id="periodos" placeholder="Ex: 5" required>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular Aporte Futuro</button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Valor Futuro Acumulado:</strong> R$ <span id="valor-futuro">0,00</span></p>
+    </div>
+    <div class="button-group">
+      <button type="button" id="save-pdf" style="display: none;">Salvar em PDF</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('aporte-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const aporte = parseFloat(document.getElementById('aporte').value);
+      const taxa = parseFloat(document.getElementById('taxa').value) / 100;
+      const periodos = parseFloat(document.getElementById('periodos').value);
+
+      // Validação dos campos
+      if (isNaN(aporte) || isNaN(taxa) || isNaN(periodos) || aporte <= 0 || taxa <= 0 || periodos <= 0) {
+        alert("Por favor, insira valores válidos.");
+        return;
+      }
+
+      // Cálculo do valor futuro (juros compostos)
+      const valorFuturo = aporte * ((Math.pow(1 + taxa, periodos) - 1) / taxa);
+
+      // Exibir resultados
+      document.getElementById('valor-futuro').textContent = valorFuturo.toFixed(2);
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('save-pdf').style.display = 'block';
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+
+      // Estilo moderno para cabeçalho
+      doc.setFillColor(110, 98, 255); // Cor de fundo: #6e62ff
+      doc.rect(0, 0, pageWidth, 60, 'F');
+      doc.setFontSize(24);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Relatório de Aporte Periódico", pageWidth / 2, 30, { align: "center" });
+
+      // Conteúdo do relatório
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      let yPosition = 80;
+      const lineSpacing = 15;
+      doc.text("Aporte Periódico: R$ " + document.getElementById('aporte').value, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Taxa de Juros: " + document.getElementById('taxa').value + "%", 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Períodos (Anos): " + document.getElementById('periodos').value, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Valor Futuro: R$ " + document.getElementById('valor-futuro').textContent, 40, yPosition);
+
+      // Rodapé moderno
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text("Calculadora de Aporte Periódico - Gerado via Web", pageWidth / 2, pageHeight - 30, { align: "center" });
+
+      // Salvar PDF
+      doc.save("relatorio_aporte_periodico.pdf");
+    });
+  </script>
+</body>
+</html>

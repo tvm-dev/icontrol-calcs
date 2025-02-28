@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Conversão de Moedas</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #fffcfc;
+      color: rgb(0, 0, 0);
+    }
+    .calculator-container {
+      background: rgba(254, 253, 253, 0.1);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 8px 8px 15px rgba(255, 255, 255, 0.1), -8px -8px 15px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(15px);
+      width: 350px;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+      border: 2px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #6e62ff;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 10px;
+      background: #eeebeb;
+      border: 2px solid #03020e;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Conversão de Moedas</h1>
+    <form id="currency-form">
+      <div class="input-group">
+        <label for="amount">Valor:</label>
+        <input type="number" id="amount" required>
+      </div>
+      <div class="input-group">
+        <label for="from-currency">De (Moeda):</label>
+        <select id="from-currency" required>
+          <option value="BRL">BRL - Real Brasileiro</option>
+          <option value="USD">USD - Dólar Americano</option>
+          <option value="EUR">EUR - Euro</option>
+          <!-- Adicione outras moedas conforme necessário -->
+        </select>
+      </div>
+      <div class="input-group">
+        <label for="to-currency">Para (Moeda):</label>
+        <select id="to-currency" required>
+          <option value="USD">USD - Dólar Americano</option>
+          <option value="EUR">EUR - Euro</option>
+          <option value="BRL">BRL - Real Brasileiro</option>
+          <!-- Adicione outras moedas conforme necessário -->
+        </select>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular Conversão</button>
+        <button type="button" id="save-pdf" style="display: none;">Salvar em PDF</button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Valor Convertido:</strong> R$ <span id="converted-value">0,00</span></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('currency-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      const amount = parseFloat(document.getElementById('amount').value);
+      const fromCurrency = document.getElementById('from-currency').value;
+      const toCurrency = document.getElementById('to-currency').value;
+
+      if (isNaN(amount) || amount <= 0) {
+        alert("Por favor, preencha o valor corretamente.");
+        return;
+      }
+
+      // Substitua 'YOUR_API_KEY' pela sua chave de API
+      const apiKey = 'YOUR_API_KEY'; 
+      const url = `https://api.exchangeratesapi.io/latest?base=${fromCurrency}&symbols=${toCurrency}&apikey=${apiKey}`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.rates && data.rates[toCurrency]) {
+            const exchangeRate = data.rates[toCurrency];
+            const convertedValue = amount * exchangeRate;
+
+            // Exibindo o resultado
+            document.getElementById('converted-value').textContent = convertedValue.toFixed(2);
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('save-pdf').style.display = 'block';
+          } else {
+            alert("Erro ao obter a taxa de câmbio. Tente novamente mais tarde.");
+          }
+        })
+        .catch(error => {
+          alert("Erro ao obter as taxas de câmbio. Tente novamente.");
+          console.error(error);
+        });
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+
+      // Estilo moderno para cabeçalho
+      doc.setFillColor(110, 98, 255); // Cor de fundo: #6e62ff
+      doc.rect(0, 0, pageWidth, 60, 'F');
+      doc.setFontSize(24);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Relatório de Conversão de Moedas", pageWidth / 2, 30, { align: "center" });
+
+      // Conteúdo do relatório
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      let yPosition = 80;
+      const lineSpacing = 15;
+      doc.text("Valor Original: R$ " + document.getElementById('amount').value, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("De: " + document.getElementById('from-currency').selectedOptions[0].text, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Para: " + document.getElementById('to-currency').selectedOptions[0].text, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Valor Convertido: R$ " + document.getElementById('converted-value').textContent, 40, yPosition);
+
+      // Rodapé moderno
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text("Calculadora de Conversão de Moedas - Gerado via Web", pageWidth / 2, pageHeight - 30, { align: "center" });
+
+      // Salvar PDF
+      doc.save("relatorio_conversao_moedas.pdf");
+    });
+  </script>
+</body>
+</html>

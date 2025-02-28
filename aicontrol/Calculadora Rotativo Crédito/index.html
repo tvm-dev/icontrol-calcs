@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Rotativo do Cartão</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #fffcfc;
+      color: rgb(0, 0, 0);
+    }
+    .calculator-container {
+      background: rgba(254, 253, 253, 0.1);
+      padding: 60px 40px;
+      border-radius: 15px;
+      box-shadow: 8px 8px 15px rgba(255, 255, 255, 0.1), -8px -8px 15px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(15px);
+      width: 500px;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+      border: 2px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #6e62ff;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 10px;
+      background: #eeebeb;
+      border: 2px solid #03020e;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Rotativo do Cartão</h1>
+    <form id="rotativo-form">
+      <div class="input-group">
+        <label for="valor-fatura">Valor da Fatura Não Paga (R$):</label>
+        <input type="number" id="valor-fatura" placeholder="Ex: 1000" required>
+      </div>
+      <div class="input-group">
+        <label for="taxa-rotativo">Taxa de Juros Mensal (%):</label>
+        <input type="number" id="taxa-rotativo" placeholder="Ex: 12.5" required>
+      </div>
+      <div class="input-group">
+        <label for="meses">Número de Meses:</label>
+        <input type="number" id="meses" placeholder="Ex: 6" required>
+      </div>
+      <div class="button-group">
+        <button type="button" id="calcular">Calcular Crescimento da Dívida</button>
+      </div>
+    </form>
+
+    <div id="result" class="result">
+      <p><strong>Valor Inicial:</strong> R$ <span id="valor-inicial"></span></p>
+      <p><strong>Total após período:</strong> R$ <span id="valor-final"></span></p>
+      <p><strong>Juros pagos:</strong> R$ <span id="juros-pagos"></span></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('calcular').addEventListener('click', function () {
+      const valorFatura = parseFloat(document.getElementById('valor-fatura').value);
+      const taxaJuros = parseFloat(document.getElementById('taxa-rotativo').value) / 100;
+      const meses = parseInt(document.getElementById('meses').value);
+
+      if (isNaN(valorFatura) || valorFatura <= 0 || isNaN(taxaJuros) || taxaJuros <= 0 || isNaN(meses) || meses <= 0) {
+        alert("Por favor, insira valores válidos.");
+        return;
+      }
+
+      let valorFinal = valorFatura * Math.pow(1 + taxaJuros, meses);
+      let jurosPagos = valorFinal - valorFatura;
+
+      document.getElementById('valor-inicial').textContent = valorFatura.toFixed(2);
+      document.getElementById('valor-final').textContent = valorFinal.toFixed(2);
+      document.getElementById('juros-pagos').textContent = jurosPagos.toFixed(2);
+      document.getElementById('result').style.display = 'block';
+    });
+  </script>
+</body>
+</html>

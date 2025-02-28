@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Juros Simples</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #fffcfc;
+      color: rgb(0, 0, 0);
+    }
+    .calculator-container {
+      background: rgba(254, 253, 253, 0.1);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 8px 8px 15px rgba(255, 255, 255, 0.1), -8px -8px 15px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(15px);
+      width: 350px;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+      border: 2px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #6e62ff;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 10px;
+      background: #eeebeb;
+      border: 2px solid #03020e;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Juros Simples</h1>
+    <form id="simple-interest-form">
+      <div class="input-group">
+        <label for="principal">Valor Principal (R$):</label>
+        <input type="number" id="principal" required>
+      </div>
+      <div class="input-group">
+        <label for="rate">Taxa de Juros (% ao ano):</label>
+        <input type="number" id="rate" required>
+      </div>
+      <div class="input-group">
+        <label for="time">Período (anos):</label>
+        <input type="number" id="time" required>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular</button>
+        <button type="button" id="save-pdf" style="display: none;">Salvar em PDF</button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Valor Final (R$):</strong> <span id="final-value">0,00</span></p>
+      <p><strong>Juros (R$):</strong> <span id="interest">0,00</span></p>
+    </div>
+  </div>
+  <script>
+    document.getElementById('simple-interest-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const principal = parseFloat(document.getElementById('principal').value);
+      const rate = parseFloat(document.getElementById('rate').value) / 100;
+      const time = parseFloat(document.getElementById('time').value);
+      if (isNaN(principal) || isNaN(rate) || isNaN(time)) {
+        alert("Por favor, preencha todos os campos corretamente.");
+        return;
+      }
+      const interest = principal * rate * time;
+      const amount = principal + interest;
+      document.getElementById('final-value').textContent = amount.toFixed(2);
+      document.getElementById('interest').textContent = interest.toFixed(2);
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('save-pdf').style.display = 'block';
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+
+      // Estilo moderno para cabeçalho
+      doc.setFillColor(110, 98, 255); // Cor de fundo: #6e62ff
+      doc.rect(0, 0, pageWidth, 60, 'F');
+      doc.setFontSize(24);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Relatório de Juros Simples", pageWidth / 2, 30, { align: "center" });
+
+      // Conteúdo do relatório
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      let yPosition = 80;
+      const lineSpacing = 15;
+      doc.text("Valor Principal: R$ " + document.getElementById('principal').value, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Taxa de Juros: " + document.getElementById('rate').value + " %", 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Período: " + document.getElementById('time').value + " anos", 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Valor Final: R$ " + document.getElementById('final-value').textContent, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Juros Totais: R$ " + document.getElementById('interest').textContent, 40, yPosition);
+
+      // Rodapé moderno
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text("Calculadora de Juros Simples - Gerado via Web", pageWidth / 2, pageHeight - 30, { align: "center" });
+
+      // Salvar PDF
+      doc.save("relatorio_juros_simples.pdf");
+    });
+  </script>
+</body>
+</html>

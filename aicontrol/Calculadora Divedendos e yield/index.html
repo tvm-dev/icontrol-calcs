@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Dividendos e Yield de Ações</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #fffcfc;
+      color: rgb(0, 0, 0);
+    }
+    .calculator-container {
+      background: rgba(254, 253, 253, 0.1);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 8px 8px 15px rgba(255, 255, 255, 0.1), -8px -8px 15px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(15px);
+      width: 350px;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+      border: 2px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #6e62ff;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 10px;
+      background: #eeebeb;
+      border: 2px solid #03020e;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Dividendos e Yield de Ações</h1>
+    <form id="dividend-form">
+      <div class="input-group">
+        <label for="price">Preço da Ação (R$):</label>
+        <input type="number" id="price" required>
+      </div>
+      <div class="input-group">
+        <label for="dividend">Dividendos por Ação (R$):</label>
+        <input type="number" id="dividend" required>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular Dividendos e Yield</button>
+        <button type="button" id="save-pdf" style="display: none;">Salvar em PDF</button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Dividendos por Ação:</strong> R$ <span id="calculated-dividends">0,00</span></p>
+      <p><strong>Dividend Yield:</strong> <span id="calculated-yield">0,00</span>%</p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('dividend-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const price = parseFloat(document.getElementById('price').value);
+      const dividend = parseFloat(document.getElementById('dividend').value);
+
+      if (isNaN(price) || isNaN(dividend) || price <= 0 || dividend <= 0) {
+        alert("Por favor, preencha os campos corretamente.");
+        return;
+      }
+
+      // Calcular dividendos
+      const calculatedDividends = price * dividend;
+
+      // Calcular Yield
+      const dividendYield = (dividend / price) * 100;
+
+      // Exibir resultados
+      document.getElementById('calculated-dividends').textContent = calculatedDividends.toFixed(2);
+      document.getElementById('calculated-yield').textContent = dividendYield.toFixed(2);
+
+      // Exibir a área de resultados
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('save-pdf').style.display = 'block';
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+
+      // Estilo moderno para cabeçalho
+      doc.setFillColor(110, 98, 255); // Cor de fundo: #6e62ff
+      doc.rect(0, 0, pageWidth, 60, 'F');
+      doc.setFontSize(24);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Relatório de Dividendos e Yield", pageWidth / 2, 30, { align: "center" });
+
+      // Conteúdo do relatório
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      let yPosition = 80;
+      const lineSpacing = 15;
+      doc.text("Preço da Ação: R$ " + document.getElementById('price').value, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Dividendos por Ação: R$ " + document.getElementById('dividend').value, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Dividendos Calculados: R$ " + document.getElementById('calculated-dividends').textContent, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Dividend Yield: " + document.getElementById('calculated-yield').textContent + "%", 40, yPosition);
+
+      // Rodapé moderno
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text("Calculadora de Dividendos e Yield - Gerado via Web", pageWidth / 2, pageHeight - 30, { align: "center" });
+
+      // Salvar PDF
+      doc.save("relatorio_dividendos_yield.pdf");
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Custo de Filhos (Quanto custa criá-los até a maioridade?)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f4f7fc;
+      color: #333;
+    }
+    .calculator-container {
+      background: #ffffff;
+      padding: 40px 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      width: 450px;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+      border: 2px solid #4e73df;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #4e73df;
+      font-weight: 600;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 14px;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #4e73df;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    input:focus, select:focus {
+      border-color: #2c6ad8;
+    }
+    .button-group button {
+      background: #4e73df;
+      color: white;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      margin-top: 15px;
+      transition: 0.3s;
+    }
+    .button-group button:hover {
+      background: #2c6ad8;
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 30px;
+      font-size: 18px;
+      padding: 20px;
+      background: #f1f1f1;
+      border: 2px solid #4e73df;
+      border-radius: 10px;
+      display: none;
+      color: #333;
+    }
+    .result p {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    .result .total-cost {
+      font-size: 22px;
+      font-weight: 600;
+      color: #2c6ad8;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Custo de Filhos (Quanto custa criá-los até a maioridade?)</h1>
+    <form id="custo-filhos-form">
+      <div class="input-group">
+        <label for="idade-inicial">Idade inicial do filho:</label>
+        <input type="number" id="idade-inicial" placeholder="Ex: 0 (Recém-nascido)" required>
+      </div>
+      <div class="input-group">
+        <label for="idade-final">Idade final (maioridade):</label>
+        <input type="number" id="idade-final" placeholder="Ex: 18" required>
+      </div>
+      <div class="input-group">
+        <label for="gasto-mensal">Gasto mensal médio com o filho (R$):</label>
+        <input type="number" id="gasto-mensal" placeholder="Ex: 1500" required>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular</button>
+        <button type="button" id="save-pdf" style="display: none;">Salvar em PDF</button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Custo total até a maioridade:</strong></p>
+      <p class="total-cost">R$ <span id="custo-total"></span></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('custo-filhos-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const idadeInicial = parseInt(document.getElementById('idade-inicial').value);
+      const idadeFinal = parseInt(document.getElementById('idade-final').value);
+      const gastoMensal = parseFloat(document.getElementById('gasto-mensal').value);
+
+      if (isNaN(idadeInicial) || isNaN(idadeFinal) || isNaN(gastoMensal) ||
+          idadeInicial <= 0 || idadeFinal <= 0 || gastoMensal <= 0) {
+        alert("Por favor, insira valores válidos.");
+        return;
+      }
+
+      // Cálculo do custo total até a maioridade
+      const meses = (idadeFinal - idadeInicial) * 12;
+      const custoTotal = meses * gastoMensal;
+
+      // Atualizar o resultado
+      document.getElementById('custo-total').textContent = custoTotal.toFixed(2);
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('save-pdf').style.display = 'inline-block';
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+
+      doc.setFillColor(78, 115, 223);
+      doc.rect(0, 0, pageWidth, 50, 'F');
+      doc.setFontSize(24);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Relatório de Custo de Filhos", pageWidth / 2, 30, { align: "center" });
+
+      doc.setFontSize(16);
+      doc.setTextColor(0, 0, 0);
+      let yPosition = 70;
+      doc.text("Idade inicial do filho: " + document.getElementById('idade-inicial').value, 40, yPosition);
+      doc.text("Idade final (maioridade): " + document.getElementById('idade-final').value, 40, yPosition + 15);
+      doc.text("Gasto mensal médio com o filho: R$ " + document.getElementById('gasto-mensal').value, 40, yPosition + 30);
+      doc.text("Custo total até a maioridade: R$ " + document.getElementById('custo-total').textContent, 40, yPosition + 45);
+
+      doc.save("relatorio_custo_filhos.pdf");
+    });
+  </script>
+</body>
+</html>

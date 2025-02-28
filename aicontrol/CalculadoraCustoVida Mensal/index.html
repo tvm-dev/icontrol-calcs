@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Custo de Vida Mensal</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #fffcfc;
+      color: rgb(0, 0, 0);
+    }
+    .calculator-container {
+      background: rgba(254, 253, 253, 0.1);
+      padding: 60px 40px;
+      border-radius: 15px;
+      box-shadow: 8px 8px 15px rgba(255, 255, 255, 0.1), -8px -8px 15px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(15px);
+      width: 500px;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+      border: 2px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #6e62ff;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 10px;
+      background: #eeebeb;
+      border: 2px solid #03020e;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Custo de Vida Mensal</h1>
+    <form id="custo-vida-form">
+      <div class="input-group">
+        <label for="alimentacao">Alimentação (R$):</label>
+        <input type="number" id="alimentacao" placeholder="Ex: 800" required>
+      </div>
+      <div class="input-group">
+        <label for="moradia">Moradia (R$):</label>
+        <input type="number" id="moradia" placeholder="Ex: 1200" required>
+      </div>
+      <div class="input-group">
+        <label for="transporte">Transporte (R$):</label>
+        <input type="number" id="transporte" placeholder="Ex: 300" required>
+      </div>
+      <div class="input-group">
+        <label for="saude">Saúde (R$):</label>
+        <input type="number" id="saude" placeholder="Ex: 250" required>
+      </div>
+      <div class="input-group">
+        <label for="educacao">Educação (R$):</label>
+        <input type="number" id="educacao" placeholder="Ex: 400" required>
+      </div>
+      <div class="input-group">
+        <label for="lazer">Lazer (R$):</label>
+        <input type="number" id="lazer" placeholder="Ex: 200" required>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular</button>
+        <button type="button" id="save-pdf" style="display: none;">Salvar em PDF</button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Custo de Vida Mensal:</strong> R$ <span id="custo-vida-total"></span></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('custo-vida-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const alimentacao = parseFloat(document.getElementById('alimentacao').value);
+      const moradia = parseFloat(document.getElementById('moradia').value);
+      const transporte = parseFloat(document.getElementById('transporte').value);
+      const saude = parseFloat(document.getElementById('saude').value);
+      const educacao = parseFloat(document.getElementById('educacao').value);
+      const lazer = parseFloat(document.getElementById('lazer').value);
+
+      if (isNaN(alimentacao) || isNaN(moradia) || isNaN(transporte) || isNaN(saude) || isNaN(educacao) || isNaN(lazer) ||
+          alimentacao < 0 || moradia < 0 || transporte < 0 || saude < 0 || educacao < 0 || lazer < 0) {
+        alert("Por favor, insira valores válidos.");
+        return;
+      }
+
+      // Cálculo do custo de vida mensal
+      const custoVidaTotal = alimentacao + moradia + transporte + saude + educacao + lazer;
+
+      // Atualizar os resultados
+      document.getElementById('custo-vida-total').textContent = custoVidaTotal.toFixed(2);
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('save-pdf').style.display = 'block';
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+
+      doc.setFillColor(110, 98, 255);
+      doc.rect(0, 0, pageWidth, 50, 'F');
+      doc.setFontSize(22);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Relatório de Custo de Vida Mensal", pageWidth / 2, 30, { align: "center" });
+
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      let yPosition = 70;
+      doc.text("Alimentação: R$ " + document.getElementById('alimentacao').value, 40, yPosition);
+      doc.text("Moradia: R$ " + document.getElementById('moradia').value, 40, yPosition + 15);
+      doc.text("Transporte: R$ " + document.getElementById('transporte').value, 40, yPosition + 30);
+      doc.text("Saúde: R$ " + document.getElementById('saude').value, 40, yPosition + 45);
+      doc.text("Educação: R$ " + document.getElementById('educacao').value, 40, yPosition + 60);
+      doc.text("Lazer: R$ " + document.getElementById('lazer').value, 40, yPosition + 75);
+      doc.text("Custo de Vida Total: R$ " + document.getElementById('custo-vida-total').textContent, 40, yPosition + 90);
+
+      doc.save("relatorio_custo_vida_mensal.pdf");
+    });
+  </script>
+</body>
+</html>

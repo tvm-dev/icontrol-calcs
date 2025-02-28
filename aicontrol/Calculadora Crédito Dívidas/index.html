@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Crédito e Dívidas</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #fffcfc;
+      color: rgb(0, 0, 0);
+    }
+    .calculator-container {
+      background: rgba(254, 253, 253, 0.1);
+      padding: 60px 40px;
+      border-radius: 15px;
+      box-shadow: 8px 8px 15px rgba(255, 255, 255, 0.1), -8px -8px 15px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(15px);
+      width: 500px;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+      border: 2px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #6e62ff;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 10px;
+      background: #eeebeb;
+      border: 2px solid #03020e;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Crédito e Dívidas</h1>
+    <form id="credito-form">
+      <div class="input-group">
+        <label for="valor-divida">Valor da Dívida (R$):</label>
+        <input type="number" id="valor-divida" placeholder="Ex: 10.000" required>
+      </div>
+      <div class="input-group">
+        <label for="taxa-juros">Taxa de Juros ao Mês (%):</label>
+        <input type="number" id="taxa-juros" placeholder="Ex: 2.5" required>
+      </div>
+      <div class="input-group">
+        <label for="prazo">Prazo de Pagamento (meses):</label>
+        <input type="number" id="prazo" placeholder="Ex: 12" required>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular</button>
+        <button type="button" id="save-pdf" style="display: none;">Salvar em PDF</button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Parcela mensal:</strong> R$ <span id="resultado"></span></p>
+      <p><strong>Total pago:</strong> R$ <span id="total-pago"></span></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('credito-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const valorDivida = parseFloat(document.getElementById('valor-divida').value);
+      const taxaJuros = parseFloat(document.getElementById('taxa-juros').value) / 100;
+      const prazo = parseInt(document.getElementById('prazo').value);
+
+      if (isNaN(valorDivida) || isNaN(taxaJuros) || isNaN(prazo) || valorDivida <= 0 || taxaJuros < 0 || prazo <= 0) {
+        alert("Por favor, insira valores válidos.");
+        return;
+      }
+
+      // Fórmula de financiamento (Preço fixo com juros compostos)
+      const parcelaMensal = (valorDivida * taxaJuros) / (1 - Math.pow(1 + taxaJuros, -prazo));
+      const totalPago = parcelaMensal * prazo;
+
+      document.getElementById('resultado').textContent = parcelaMensal.toFixed(2);
+      document.getElementById('total-pago').textContent = totalPago.toFixed(2);
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('save-pdf').style.display = 'block';
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+
+      doc.setFillColor(110, 98, 255);
+      doc.rect(0, 0, pageWidth, 50, 'F');
+      doc.setFontSize(22);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Relatório de Crédito e Dívidas", pageWidth / 2, 30, { align: "center" });
+
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      let yPosition = 70;
+      doc.text("Valor da Dívida: R$ " + document.getElementById('valor-divida').value, 40, yPosition);
+      doc.text("Taxa de Juros Mensal: " + document.getElementById('taxa-juros').value + "%", 40, yPosition + 15);
+      doc.text("Prazo de Pagamento: " + document.getElementById('prazo').value + " meses", 40, yPosition + 30);
+      doc.text("Parcela Mensal: R$ " + document.getElementById('resultado').textContent, 40, yPosition + 45);
+      doc.text("Total Pago: R$ " + document.getElementById('total-pago').textContent, 40, yPosition + 60);
+
+      doc.save("relatorio_credito_dividas.pdf");
+    });
+  </script>
+</body>
+</html>

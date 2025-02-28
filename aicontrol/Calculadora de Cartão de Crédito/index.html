@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Cartão de Crédito (Parcelamento vs. Pagamento Total)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #fffcfc;
+      color: rgb(0, 0, 0);
+    }
+    .calculator-container {
+      background: rgba(254, 253, 253, 0.1);
+      padding: 60px 40px;
+      border-radius: 15px;
+      box-shadow: 8px 8px 15px rgba(255, 255, 255, 0.1), -8px -8px 15px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(15px);
+      width: 500px;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+      border: 2px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #6e62ff;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 10px;
+      background: #eeebeb;
+      border: 2px solid #03020e;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Cartão de Crédito (Parcelamento vs. Pagamento Total)</h1>
+    <form id="cartao-form">
+      <div class="input-group">
+        <label for="valor-compra">Valor da Compra (R$):</label>
+        <input type="number" id="valor-compra" placeholder="Ex: 1.000" required>
+      </div>
+      <div class="input-group">
+        <label for="numero-parcelas">Número de Parcelas:</label>
+        <input type="number" id="numero-parcelas" placeholder="Ex: 12" required>
+      </div>
+      <div class="input-group">
+        <label for="taxa-juros">Taxa de Juros (% ao mês):</label>
+        <input type="number" id="taxa-juros" placeholder="Ex: 5" required>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular</button>
+        <button type="button" id="save-pdf" style="display: none;">Salvar em PDF</button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Valor Total Parcelado:</strong> R$ <span id="total-parcelado"></span></p>
+      <p><strong>Valor Total com Pagamento à Vista:</strong> R$ <span id="total-pagamento"></span></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('cartao-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const valorCompra = parseFloat(document.getElementById('valor-compra').value);
+      const numeroParcelas = parseInt(document.getElementById('numero-parcelas').value);
+      const taxaJuros = parseFloat(document.getElementById('taxa-juros').value) / 100;
+
+      if (isNaN(valorCompra) || isNaN(numeroParcelas) || isNaN(taxaJuros) || valorCompra <= 0 || numeroParcelas <= 0 || taxaJuros < 0) {
+        alert("Por favor, insira valores válidos.");
+        return;
+      }
+
+      // Cálculo do valor total com parcelamento
+      const valorParcelado = valorCompra * Math.pow(1 + taxaJuros, numeroParcelas);
+      const valorTotalParcelado = valorParcelado.toFixed(2);
+
+      // Cálculo do valor total com pagamento à vista (sem juros)
+      const valorTotalPagamento = valorCompra.toFixed(2);
+
+      document.getElementById('total-parcelado').textContent = valorTotalParcelado;
+      document.getElementById('total-pagamento').textContent = valorTotalPagamento;
+      
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('save-pdf').style.display = 'block';
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+
+      doc.setFillColor(110, 98, 255);
+      doc.rect(0, 0, pageWidth, 50, 'F');
+      doc.setFontSize(22);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Relatório de Cartão de Crédito", pageWidth / 2, 30, { align: "center" });
+
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      let yPosition = 70;
+      doc.text("Valor da Compra: R$ " + document.getElementById('valor-compra').value, 40, yPosition);
+      doc.text("Número de Parcelas: " + document.getElementById('numero-parcelas').value, 40, yPosition + 15);
+      doc.text("Taxa de Juros: " + document.getElementById('taxa-juros').value + "%", 40, yPosition + 30);
+      doc.text("Valor Total com Parcelamento: R$ " + document.getElementById('total-parcelado').textContent, 40, yPosition + 45);
+      doc.text("Valor Total com Pagamento à Vista: R$ " + document.getElementById('total-pagamento').textContent, 40, yPosition + 60);
+
+      doc.save("relatorio_cartao_credito.pdf");
+    });
+  </script>
+</body>
+</html>
