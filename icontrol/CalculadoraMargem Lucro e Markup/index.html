@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Margem de Lucro e Markup</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f0f0f5;
+      color: rgb(0, 0, 0);
+      padding: 10px;
+    }
+    .calculator-container {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      animation: fadeIn 0.8s ease-in-out;
+      border: 3px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #6e62ff;
+      font-weight: 700;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 15px;
+      display: block;
+      margin-bottom: 5px;
+      color: #6e62ff;
+      font-weight: 600;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 12px;
+      background: #eeebeb;
+      border: 2px solid #6e62ff;
+      border-radius: 10px;
+      display: none;
+    }
+    .dica {
+      font-size: 14px;
+      color: #6e62ff;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+    .button-group button img {
+      width: 40px;
+      height: 40px;
+    }
+    .saving {
+      font-size: 18px;
+      color: #6e62ff;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 18px;
+      }
+      .input-group {
+        margin-bottom: 12px;
+      }
+      input {
+        padding: 10px;
+        font-size: 14px;
+      }
+      .button-group button {
+        font-size: 14px;
+        padding: 10px;
+      }
+      .result {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Margem de Lucro e Markup</h1>
+    <form id="profit-markup-form">
+      <div class="input-group">
+        <label for="cost-price">Preço de Custo (R$):</label>
+        <input type="number" id="cost-price" required>
+      </div>
+      <div class="input-group">
+        <label for="sale-price">Preço de Venda (R$):</label>
+        <input type="number" id="sale-price" required>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular</button>
+        <button type="button" id="save-pdf" style="display: none;">
+          <img src="https://st2.depositphotos.com/3904951/5819/v/450/depositphotos_58192237-stock-illustration-pdf-icon.jpg" alt="Ícone PDF">
+          Salvar PDF
+        </button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Margem de Lucro:</strong> <span id="profit-margin">0,00%</span></p>
+      <p><strong>Markup:</strong> <span id="markup">0,00</span></p>
+    </div>
+    <div id="dica" class="dica">
+      <strong>Dica:</strong> Use essa calculadora para avaliar o preço de venda adequado para cobrir seus custos e obter lucro.
+    </div>
+    <div id="saving-message" class="saving" style="display: none;">Salvando...</div>
+  </div>
+
+  <script>
+    document.getElementById('profit-markup-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const cost = parseFloat(document.getElementById('cost-price').value);
+      const sale = parseFloat(document.getElementById('sale-price').value);
+      if (cost && sale) {
+        const profitMargin = ((sale - cost) / sale) * 100;
+        const markup = sale / cost;
+        document.getElementById('profit-margin').textContent = profitMargin.toFixed(2) + '%';
+        document.getElementById('markup').textContent = markup.toFixed(2);
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('save-pdf').style.display = 'block';
+      }
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      document.getElementById('saving-message').style.display = 'block';  // Exibe "Salvando..."
+      setTimeout(function() {
+        document.getElementById('saving-message').style.display = 'none';  // Oculta após 2 segundos
+      }, 2000);
+
+      // Lógica para salvar como PDF
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      const profitMargin = document.getElementById('profit-margin').textContent;
+      const markup = document.getElementById('markup').textContent;
+
+      doc.setFontSize(16);
+      doc.setTextColor(110, 98, 255);
+      doc.text("Calculadora de Margem de Lucro e Markup", 105, 30, { align: "center" });
+
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Margem de Lucro: ${profitMargin}`, 105, 50, { align: "center" });
+      doc.text(`Markup: ${markup}`, 105, 60, { align: "center" });
+
+      doc.setFontSize(12);
+      doc.setTextColor(110, 98, 255);
+      doc.text("Dica: Use essa calculadora para avaliar o preço de venda adequado.", 105, 80, { align: "center" });
+
+      const imageUrl = "https://static.vecteezy.com/system/resources/previews/000/356/539/original/vector-calculator-icon.jpg";
+      doc.addImage(imageUrl, 'JPEG', 105, 100, 40, 40);
+
+      doc.text("Obrigado por usar nossa calculadora!", 105, 150, { align: "center" });
+
+      doc.save('margem_de_lucro_e_markup.pdf');
+    });
+  </script>
+</body>
+</html>

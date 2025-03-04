@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Tempo para se Tornar Milionário</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f0f0f5;
+      color: rgb(0, 0, 0);
+      padding: 10px;
+    }
+    .calculator-container {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      animation: fadeIn 0.8s ease-in-out;
+      border: 3px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #6e62ff;
+      font-weight: 700;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 15px;
+      display: block;
+      margin-bottom: 5px;
+      color: #6e62ff;
+      font-weight: 600;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 12px;
+      background: #eeebeb;
+      border: 2px solid #6e62ff;
+      border-radius: 10px;
+      display: none;
+    }
+    .explanation {
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 8px;
+      color: #333;
+    }
+    .dica {
+      font-size: 14px;
+      color: #6e62ff;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+    .button-group button img {
+      width: 40px;
+      height: 40px;
+    }
+    .saving {
+      font-size: 18px;
+      color: #6e62ff;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    /* Estilos Responsivos */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 18px;
+      }
+      .input-group {
+        margin-bottom: 12px;
+      }
+      input, select {
+        padding: 10px;
+        font-size: 14px;
+      }
+      .button-group button {
+        font-size: 14px;
+        padding: 10px;
+      }
+      .result {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Tempo para se Tornar Milionário</h1>
+    <form id="millionaire-time-form">
+      <div class="input-group">
+        <label for="current-wealth">Patrimônio Atual (R$):</label>
+        <input type="number" id="current-wealth" required>
+      </div>
+      <div class="input-group">
+        <label for="monthly-contribution">Aporte Mensal (R$):</label>
+        <input type="number" id="monthly-contribution" required>
+      </div>
+      <div class="input-group">
+        <label for="interest-rate">Taxa de Juros Anual (%):</label>
+        <input type="number" id="interest-rate" required>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular</button>
+        <button type="button" id="save-pdf" style="display: none;">
+          <img src="https://st2.depositphotos.com/3904951/5819/v/450/depositphotos_58192237-stock-illustration-pdf-icon.jpg" alt="Ícone PDF">
+          Salvar PDF
+        </button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Tempo para se Tornar Milionário:</strong> <span id="time-to-million">0,00</span> anos</p>
+    </div>
+    <div id="dica" class="dica">
+      <strong>Dica:</strong> O tempo pode variar dependendo da taxa de retorno dos seus investimentos.
+    </div>
+    <div id="saving-message" class="saving" style="display: none;">Salvando...</div>
+  </div>
+  <script>
+    document.getElementById('millionaire-time-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const currentWealth = parseFloat(document.getElementById('current-wealth').value);
+      const monthlyContribution = parseFloat(document.getElementById('monthly-contribution').value);
+      const interestRate = parseFloat(document.getElementById('interest-rate').value) / 100 / 12;
+
+      if (isNaN(currentWealth) || isNaN(monthlyContribution) || isNaN(interestRate) || currentWealth <= 0 || monthlyContribution < 0 || interestRate <= 0) {
+        alert("Preencha os campos corretamente.");
+        return;
+      }
+
+      let months = 0;
+      let wealth = currentWealth;
+
+      while (wealth < 1000000) {
+        wealth += monthlyContribution;
+        wealth += wealth * interestRate;
+        months++;
+      }
+
+      const years = (months / 12).toFixed(2);
+
+      document.getElementById('time-to-million').textContent = years;
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('save-pdf').style.display = 'flex';
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      document.getElementById('saving-message').style.display = 'block';  // Exibe "Salvando..."
+      setTimeout(function() {
+        document.getElementById('saving-message').style.display = 'none';  // Oculta após 2 segundos
+      }, 2000);
+
+      // Lógica para salvar como PDF
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const timeToMillion = document.getElementById('time-to-million').textContent;
+
+      doc.setFontSize(16);
+      doc.setTextColor(110, 98, 255);
+      doc.text("Calculadora de Tempo para se Tornar Milionário", 105, 30, { align: "center" });
+
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Tempo para se Tornar Milionário: ${timeToMillion} anos`, 105, 50, { align: "center" });
+
+      doc.setFontSize(12);
+      doc.setTextColor(110, 98, 255);
+      doc.text("Dica: O tempo pode variar dependendo da taxa de retorno dos seus investimentos.", 105, 70, { align: "center" });
+
+      doc.setFontSize(12);
+      doc.setTextColor(110, 98, 255);
+      doc.text("Lembre-se de revisar seus aportes e taxas regularmente.", 105, 90, { align: "center" });
+
+      const imageUrl = "https://static.vecteezy.com/system/resources/previews/000/356/539/original/vector-calculator-icon.jpg";
+      doc.addImage(imageUrl, 'JPEG', 105, 100, 40, 40);
+
+      doc.text("Obrigado por usar nossa Calculadora!", 105, 150, { align: "center" });
+
+      doc.save('tempo_para_milionario.pdf');
+    });
+  </script>
+</body>
+</html>

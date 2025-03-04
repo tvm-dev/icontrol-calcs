@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Gastos Ocultos (Taxas bancárias, juros não percebidos, despesas invisíveis)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f0f0f5;
+      color: rgb(0, 0, 0);
+      padding: 10px;
+    }
+    .calculator-container {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      animation: fadeIn 0.8s ease-in-out;
+      border: 3px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #6e62ff;
+      font-weight: 700;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 15px;
+      display: block;
+      margin-bottom: 5px;
+      color: #6e62ff;
+      font-weight: 600;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 12px;
+      background: #eeebeb;
+      border: 2px solid #6e62ff;
+      border-radius: 10px;
+      display: none;
+    }
+    .explanation {
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 8px;
+      color: #333;
+    }
+    .dica {
+      font-size: 14px;
+      color: #6e62ff;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+    .button-group button img {
+      width: 40px;
+      height: 40px;
+    }
+    .saving {
+      font-size: 18px;
+      color: #6e62ff;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    /* Estilos Responsivos */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 18px;
+      }
+      .input-group {
+        margin-bottom: 12px;
+      }
+      input {
+        padding: 10px;
+        font-size: 14px;
+      }
+      .button-group button {
+        font-size: 14px;
+        padding: 10px;
+      }
+      .result {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Gastos Ocultos (Taxas bancárias, juros não percebidos, despesas invisíveis)</h1>
+    <form id="hidden-expenses-form">
+      <div class="input-group">
+        <label for="monthly-fees">Taxas Mensais (R$):</label>
+        <input type="number" id="monthly-fees" required>
+      </div>
+      <div class="input-group">
+        <label for="annual-interest">Juros Anuais (%):</label>
+        <input type="number" id="annual-interest" required>
+      </div>
+      <div class="input-group">
+        <label for="hidden-expenses-months">Meses de Exposição:</label>
+        <input type="number" id="hidden-expenses-months" required>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular</button>
+        <button type="button" id="save-pdf" style="display: none;">
+          <img src="https://st2.depositphotos.com/3904951/5819/v/450/depositphotos_58192237-stock-illustration-pdf-icon.jpg" alt="Ícone PDF">
+          Salvar PDF
+        </button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Valor Final com Gastos Ocultos:</strong> R$ <span id="total-value">0.00</span></p>
+      <p><strong>Gastos Ocultos Totais:</strong> R$ <span id="hidden-expenses">0.00</span></p>
+    </div>
+    <div id="dica" class="dica">
+      <strong>Dica:</strong> Gastos invisíveis, como taxas bancárias e juros não percebidos, podem afetar significativamente suas finanças a longo prazo!
+    </div>
+    <div id="saving-message" class="saving" style="display: none;">Salvando...</div>
+  </div>
+  <script>
+    document.getElementById('hidden-expenses-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const monthlyFees = parseFloat(document.getElementById('monthly-fees').value);
+      const annualInterest = parseFloat(document.getElementById('annual-interest').value);
+      const months = parseFloat(document.getElementById('hidden-expenses-months').value);
+
+      if (isNaN(monthlyFees) || isNaN(annualInterest) || isNaN(months) || monthlyFees < 0 || annualInterest < 0 || months <= 0) {
+        alert("Por favor, insira valores válidos.");
+        return;
+      }
+
+      const monthlyInterestRate = annualInterest / 100 / 12;
+      let totalAmount = 0;
+      let hiddenExpenses = 0;
+
+      for (let i = 0; i < months; i++) {
+        totalAmount += monthlyFees * Math.pow(1 + monthlyInterestRate, i);
+        hiddenExpenses += monthlyFees;
+      }
+
+      document.getElementById('total-value').textContent = totalAmount.toFixed(2);
+      document.getElementById('hidden-expenses').textContent = hiddenExpenses.toFixed(2);
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('save-pdf').style.display = 'flex';
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      document.getElementById('saving-message').style.display = 'block';  // Exibe "Salvando..."
+      setTimeout(function() {
+        document.getElementById('saving-message').style.display = 'none';  // Oculta após 2 segundos
+      }, 2000);
+
+      // Lógica para salvar como PDF
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const totalValue = document.getElementById('total-value').textContent;
+      const hiddenExpenses = document.getElementById('hidden-expenses').textContent;
+
+      doc.setFontSize(16);
+      doc.setTextColor(110, 98, 255);
+      doc.text("Calculadora de Gastos Ocultos", 105, 30, { align: "center" });
+
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Valor Final com Gastos Ocultos: R$ ${totalValue}`, 105, 50, { align: "center" });
+      doc.text(`Gastos Ocultos Totais: R$ ${hiddenExpenses}`, 105, 60, { align: "center" });
+
+      doc.setFontSize(12);
+      doc.setTextColor(110, 98, 255);
+      doc.text("Dica: Gastos invisíveis podem afetar suas finanças a longo prazo. Fique atento!", 105, 80, { align: "center" });
+
+      const imageUrl = "https://static.vecteezy.com/system/resources/previews/000/356/539/original/vector-calculator-icon.jpg";
+      doc.addImage(imageUrl, 'JPEG', 105, 100, 40, 40);
+
+      doc.text("Obrigado por usar nossa Calculadora!", 105, 140, { align: "center" });
+
+      doc.save('gastos_ocultos.pdf');
+    });
+  </script>
+</body>
+</html>

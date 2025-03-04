@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Investimentos em Imóveis</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #fffcfc;
+      color: rgb(0, 0, 0);
+    }
+    .calculator-container {
+      background: rgba(254, 253, 253, 0.1);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 8px 8px 15px rgba(255, 255, 255, 0.1), -8px -8px 15px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(15px);
+      width: 350px;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+      border: 2px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #6e62ff;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 10px;
+      background: #eeebeb;
+      border: 2px solid #03020e;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Investimentos em Imóveis</h1>
+    <form id="investment-form">
+      <div class="input-group">
+        <label for="investment-amount">Valor do Investimento (R$):</label>
+        <input type="number" id="investment-amount" required>
+      </div>
+      <div class="input-group">
+        <label for="monthly-rent">Renda Mensal de Aluguel (R$):</label>
+        <input type="number" id="monthly-rent" required>
+      </div>
+      <div class="input-group">
+        <label for="investment-years">Número de Anos de Investimento:</label>
+        <input type="number" id="investment-years" required>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular Retorno de Investimento</button>
+        <button type="button" id="save-pdf" style="display: none;">Salvar em PDF</button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Retorno Total de Investimento (R$):</strong> <span id="total-return">0,00</span></p>
+    </div>
+  </div>
+  <script>
+    document.getElementById('investment-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      // Pegando os valores dos campos
+      const investmentAmount = parseFloat(document.getElementById('investment-amount').value);
+      const monthlyRent = parseFloat(document.getElementById('monthly-rent').value);
+      const investmentYears = parseInt(document.getElementById('investment-years').value);
+
+      if (isNaN(investmentAmount) || isNaN(monthlyRent) || isNaN(investmentYears) || investmentAmount <= 0 || monthlyRent <= 0 || investmentYears <= 0) {
+        alert("Por favor, preencha todos os campos corretamente.");
+        return;
+      }
+
+      // Calculando o retorno total de investimento
+      const totalRent = monthlyRent * 12 * investmentYears;
+      const totalReturn = totalRent + investmentAmount;
+
+      // Exibindo o resultado
+      document.getElementById('total-return').textContent = totalReturn.toFixed(2);
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('save-pdf').style.display = 'block';
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+
+      // Estilo moderno para cabeçalho
+      doc.setFillColor(110, 98, 255); // Cor de fundo: #6e62ff
+      doc.rect(0, 0, pageWidth, 60, 'F');
+      doc.setFontSize(24);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Relatório de Investimentos em Imóveis", pageWidth / 2, 30, { align: "center" });
+
+      // Conteúdo do relatório
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      let yPosition = 80;
+      const lineSpacing = 15;
+      doc.text("Valor do Investimento: R$ " + document.getElementById('investment-amount').value, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Renda Mensal de Aluguel: R$ " + document.getElementById('monthly-rent').value, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Número de Anos de Investimento: " + document.getElementById('investment-years').value, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Retorno Total de Investimento: R$ " + document.getElementById('total-return').textContent, 40, yPosition);
+
+      // Rodapé moderno
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text("Calculadora de Investimentos - Gerado via Web", pageWidth / 2, pageHeight - 30, { align: "center" });
+
+      // Salvar PDF
+      doc.save("relatorio_investimentos_imoveis.pdf");
+    });
+  </script>
+</body>
+</html>

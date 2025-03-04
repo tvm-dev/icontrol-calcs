@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Orçamento e Planejamento Pessoal</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #fffcfc;
+      color: rgb(0, 0, 0);
+    }
+    .calculator-container {
+      background: rgba(254, 253, 253, 0.1);
+      padding: 60px 40px;
+      border-radius: 15px;
+      box-shadow: 8px 8px 15px rgba(255, 255, 255, 0.1), -8px -8px 15px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(15px);
+      width: 500px;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+      border: 2px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #6e62ff;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 10px;
+      background: #eeebeb;
+      border: 2px solid #03020e;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Orçamento e Planejamento Pessoal</h1>
+    <form id="orcamento-form">
+      <div class="input-group">
+        <label for="renda-mensal">Renda Mensal (R$):</label>
+        <input type="number" id="renda-mensal" placeholder="Ex: 3000" required>
+      </div>
+      <div class="input-group">
+        <label for="gastos-fixos">Gastos Fixos Mensais (R$):</label>
+        <input type="number" id="gastos-fixos" placeholder="Ex: 1500" required>
+      </div>
+      <div class="input-group">
+        <label for="gastos-variaveis">Gastos Variáveis (R$):</label>
+        <input type="number" id="gastos-variaveis" placeholder="Ex: 500" required>
+      </div>
+      <div class="input-group">
+        <label for="objetivos-financeiros">Objetivos Financeiros (R$):</label>
+        <input type="number" id="objetivos-financeiros" placeholder="Ex: 200" required>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular</button>
+        <button type="button" id="save-pdf" style="display: none;">Salvar em PDF</button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Saldo Mensal:</strong> R$ <span id="saldo-mensal"></span></p>
+      <p><strong>Percentual de Renda Utilizado:</strong> <span id="percentual-renda"></span>%</p>
+      <p><strong>Percentual de Gastos Fixos:</strong> <span id="percentual-fixos"></span>%</p>
+      <p><strong>Percentual de Gastos Variáveis:</strong> <span id="percentual-variaveis"></span>%</p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('orcamento-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const rendaMensal = parseFloat(document.getElementById('renda-mensal').value);
+      const gastosFixos = parseFloat(document.getElementById('gastos-fixos').value);
+      const gastosVariaveis = parseFloat(document.getElementById('gastos-variaveis').value);
+      const objetivosFinanceiros = parseFloat(document.getElementById('objetivos-financeiros').value);
+
+      if (isNaN(rendaMensal) || isNaN(gastosFixos) || isNaN(gastosVariaveis) || isNaN(objetivosFinanceiros) ||
+          rendaMensal <= 0 || gastosFixos < 0 || gastosVariaveis < 0 || objetivosFinanceiros < 0) {
+        alert("Por favor, insira valores válidos.");
+        return;
+      }
+
+      // Cálculo do saldo mensal
+      const saldoMensal = rendaMensal - (gastosFixos + gastosVariaveis + objetivosFinanceiros);
+
+      // Percentuais
+      const percentualRenda = ((gastosFixos + gastosVariaveis + objetivosFinanceiros) / rendaMensal) * 100;
+      const percentualFixos = (gastosFixos / rendaMensal) * 100;
+      const percentualVariaveis = (gastosVariaveis / rendaMensal) * 100;
+
+      // Atualizar os resultados
+      document.getElementById('saldo-mensal').textContent = saldoMensal.toFixed(2);
+      document.getElementById('percentual-renda').textContent = percentualRenda.toFixed(2);
+      document.getElementById('percentual-fixos').textContent = percentualFixos.toFixed(2);
+      document.getElementById('percentual-variaveis').textContent = percentualVariaveis.toFixed(2);
+
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('save-pdf').style.display = 'block';
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+
+      doc.setFillColor(110, 98, 255);
+      doc.rect(0, 0, pageWidth, 50, 'F');
+      doc.setFontSize(22);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Relatório de Orçamento Pessoal", pageWidth / 2, 30, { align: "center" });
+
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      let yPosition = 70;
+      doc.text("Renda Mensal: R$ " + document.getElementById('renda-mensal').value, 40, yPosition);
+      doc.text("Gastos Fixos Mensais: R$ " + document.getElementById('gastos-fixos').value, 40, yPosition + 15);
+      doc.text("Gastos Variáveis: R$ " + document.getElementById('gastos-variaveis').value, 40, yPosition + 30);
+      doc.text("Objetivos Financeiros: R$ " + document.getElementById('objetivos-financeiros').value, 40, yPosition + 45);
+      doc.text("Saldo Mensal: R$ " + document.getElementById('saldo-mensal').textContent, 40, yPosition + 60);
+      doc.text("Percentual de Renda Utilizado: " + document.getElementById('percentual-renda').textContent + "%", 40, yPosition + 75);
+      doc.text("Percentual de Gastos Fixos: " + document.getElementById('percentual-fixos').textContent + "%", 40, yPosition + 90);
+      doc.text("Percentual de Gastos Variáveis: " + document.getElementById('percentual-variaveis').textContent + "%", 40, yPosition + 105);
+
+      doc.save("relatorio_orcamento_pessoal.pdf");
+    });
+  </script>
+</body>
+</html>

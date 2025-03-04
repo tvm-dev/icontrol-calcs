@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadoras para Negócios e Empreendedores</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #fffcfc;
+      color: rgb(0, 0, 0);
+    }
+    .calculator-container {
+      background: rgba(254, 253, 253, 0.1);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 8px 8px 15px rgba(255, 255, 255, 0.1), -8px -8px 15px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(15px);
+      width: 350px;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+      border: 2px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #6e62ff;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 10px;
+      background: #eeebeb;
+      border: 2px solid #03020e;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadoras para Negócios e Empreendedores</h1>
+    <form id="business-form">
+      <div class="input-group">
+        <label for="revenue">Receita Mensal (R$):</label>
+        <input type="number" id="revenue" required>
+      </div>
+      <div class="input-group">
+        <label for="expenses">Despesas Mensais (R$):</label>
+        <input type="number" id="expenses" required>
+      </div>
+      <div class="input-group">
+        <label for="investment">Investimento Inicial (R$):</label>
+        <input type="number" id="investment" required>
+      </div>
+      <div class="input-group">
+        <label for="growth-rate">Taxa de Crescimento Anual (%):</label>
+        <input type="number" id="growth-rate" required>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular</button>
+        <button type="button" id="save-pdf" style="display: none;">Salvar em PDF</button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Lucro Mensal Estimado (R$):</strong> <span id="monthly-profit">0,00</span></p>
+      <p><strong>Lucro Anual Estimado (R$):</strong> <span id="annual-profit">0,00</span></p>
+      <p><strong>Valor Futuro do Investimento (R$):</strong> <span id="future-investment">0,00</span></p>
+    </div>
+  </div>
+  <script>
+    document.getElementById('business-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      // Pegando os valores dos campos
+      const revenue = parseFloat(document.getElementById('revenue').value);
+      const expenses = parseFloat(document.getElementById('expenses').value);
+      const investment = parseFloat(document.getElementById('investment').value);
+      const growthRate = parseFloat(document.getElementById('growth-rate').value) / 100;
+
+      if (isNaN(revenue) || isNaN(expenses) || isNaN(investment) || isNaN(growthRate) || revenue <= 0 || expenses <= 0 || investment <= 0 || growthRate <= 0) {
+        alert("Por favor, preencha todos os campos corretamente.");
+        return;
+      }
+
+      // Cálculo do lucro mensal
+      const monthlyProfit = revenue - expenses;
+
+      // Cálculo do lucro anual
+      const annualProfit = monthlyProfit * 12;
+
+      // Cálculo do valor futuro do investimento
+      const futureInvestment = investment * Math.pow(1 + growthRate, 1);
+
+      // Exibindo os resultados
+      document.getElementById('monthly-profit').textContent = monthlyProfit.toFixed(2);
+      document.getElementById('annual-profit').textContent = annualProfit.toFixed(2);
+      document.getElementById('future-investment').textContent = futureInvestment.toFixed(2);
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('save-pdf').style.display = 'block';
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+
+      // Estilo moderno para cabeçalho
+      doc.setFillColor(110, 98, 255); // Cor de fundo: #6e62ff
+      doc.rect(0, 0, pageWidth, 60, 'F');
+      doc.setFontSize(24);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Relatório de Negócios e Empreendedores", pageWidth / 2, 30, { align: "center" });
+
+      // Conteúdo do relatório
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      let yPosition = 80;
+      const lineSpacing = 15;
+      doc.text("Receita Mensal: R$ " + document.getElementById('revenue').value, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Despesas Mensais: R$ " + document.getElementById('expenses').value, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Investimento Inicial: R$ " + document.getElementById('investment').value, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Taxa de Crescimento Anual: " + document.getElementById('growth-rate').value + "%", 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Lucro Mensal Estimado: R$ " + document.getElementById('monthly-profit').textContent, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Lucro Anual Estimado: R$ " + document.getElementById('annual-profit').textContent, 40, yPosition);
+      yPosition += lineSpacing;
+      doc.text("Valor Futuro do Investimento: R$ " + document.getElementById('future-investment').textContent, 40, yPosition);
+
+      // Rodapé moderno
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text("Calculadora de Negócios e Empreendedores - Gerado via Web", pageWidth / 2, pageHeight - 30, { align: "center" });
+
+      // Salvar PDF
+      doc.save("relatorio_negocios_empresarios.pdf");
+    });
+  </script>
+</body>
+</html>

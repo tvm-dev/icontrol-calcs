@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Financiamento x Investimento (Comprar parcelado ou investir e pagar à vista?)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f0f0f5;
+      color: rgb(0, 0, 0);
+      padding: 10px;
+    }
+    .calculator-container {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      animation: fadeIn 0.8s ease-in-out;
+      border: 3px solid #6e62ff;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #6e62ff;
+      font-weight: 700;
+    }
+    .input-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      font-size: 15px;
+      display: block;
+      margin-bottom: 5px;
+      color: #6e62ff;
+      font-weight: 600;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #6e62ff;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #f9f9ff;
+      color: #07060d;
+      outline: none;
+      transition: 0.3s;
+    }
+    .button-group button {
+      background: #6e62ff;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 10px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .button-group button:hover {
+      background: rgb(40, 4, 146);
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      padding: 12px;
+      background: #eeebeb;
+      border: 2px solid #6e62ff;
+      border-radius: 10px;
+      display: none;
+    }
+    .explanation {
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 8px;
+      color: #333;
+    }
+    .dica {
+      font-size: 14px;
+      color: #6e62ff;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+    .button-group button img {
+      width: 40px;
+      height: 40px;
+    }
+    .saving {
+      font-size: 18px;
+      color: #6e62ff;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    /* Estilos Responsivos */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 18px;
+      }
+      .input-group {
+        margin-bottom: 12px;
+      }
+      input {
+        padding: 10px;
+        font-size: 14px;
+      }
+      .button-group button {
+        font-size: 14px;
+        padding: 10px;
+      }
+      .result {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>Calculadora de Financiamento x Investimento (Comprar parcelado ou investir e pagar à vista?)</h1>
+    <form id="finance-invest-form">
+      <div class="input-group">
+        <label for="price">Preço do Produto (R$):</label>
+        <input type="number" id="price" required>
+      </div>
+      <div class="input-group">
+        <label for="interest-rate">Taxa de Juros do Financiamento (% ao mês):</label>
+        <input type="number" id="interest-rate" step="0.1" required>
+      </div>
+      <div class="input-group">
+        <label for="installments">Número de Parcelas:</label>
+        <input type="number" id="installments" required>
+      </div>
+      <div class="input-group">
+        <label for="investment-return">Taxa de Retorno do Investimento Anual (%):</label>
+        <input type="number" id="investment-return" step="0.1" required>
+      </div>
+      <div class="button-group">
+        <button type="submit">Calcular</button>
+        <button type="button" id="save-pdf" style="display: none;">
+          <img src="https://st2.depositphotos.com/3904951/5819/v/450/depositphotos_58192237-stock-illustration-pdf-icon.jpg" alt="Ícone PDF">
+          Salvar PDF
+        </button>
+      </div>
+    </form>
+    <div id="result" class="result">
+      <p><strong>Valor Total do Financiamento:</strong> R$ <span id="total-financing">0,00</span></p>
+      <p><strong>Valor Investido para Pagar à Vista:</strong> R$ <span id="investment-value">0,00</span></p>
+      <p><strong>Diferença:</strong> <span id="difference">0,00</span></p>
+    </div>
+    <div id="dica" class="dica">
+      <strong>Dica:</strong> Compare o valor total do financiamento com o valor investido para saber qual é a melhor opção para o seu caso.
+    </div>
+    <div id="saving-message" class="saving" style="display: none;">Salvando...</div>
+  </div>
+  <script>
+    document.getElementById('finance-invest-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const price = parseFloat(document.getElementById('price').value);
+      const interestRate = parseFloat(document.getElementById('interest-rate').value) / 100;
+      const installments = parseInt(document.getElementById('installments').value);
+      const investmentReturn = parseFloat(document.getElementById('investment-return').value) / 100;
+
+      if (isNaN(price) || isNaN(interestRate) || isNaN(installments) || isNaN(investmentReturn) || price <= 0 || interestRate <= 0 || installments <= 0 || investmentReturn <= 0) {
+        alert("Preencha os campos corretamente.");
+        return;
+      }
+
+      // Cálculo do valor total do financiamento
+      const financingValue = price * Math.pow(1 + interestRate, installments);
+      
+      // Cálculo do valor investido para pagar à vista
+      const investmentValue = price * Math.pow(1 + investmentReturn, installments / 12); // considera o investimento ao longo do período
+
+      // Exibir Resultados
+      document.getElementById('total-financing').textContent = financingValue.toFixed(2);
+      document.getElementById('investment-value').textContent = investmentValue.toFixed(2);
+      document.getElementById('difference').textContent = (financingValue - investmentValue).toFixed(2);
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('save-pdf').style.display = 'flex';
+    });
+
+    document.getElementById('save-pdf').addEventListener('click', function() {
+      document.getElementById('saving-message').style.display = 'block';  // Exibe "Salvando..."
+      setTimeout(function() {
+        document.getElementById('saving-message').style.display = 'none';  // Oculta após 2 segundos
+      }, 2000);
+
+      // Lógica para salvar como PDF
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const totalFinancing = document.getElementById('total-financing').textContent;
+      const investmentValue = document.getElementById('investment-value').textContent;
+      const difference = document.getElementById('difference').textContent;
+
+      doc.setFontSize(16);
+      doc.setTextColor(110, 98, 255);
+      doc.text("Calculadora de Financiamento x Investimento", 105, 30, { align: "center" });
+
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Valor Total do Financiamento: R$ ${totalFinancing}`, 105, 50, { align: "center" });
+      doc.text(`Valor Investido para Pagar à Vista: R$ ${investmentValue}`, 105, 60, { align: "center" });
+      doc.text(`Diferença: R$ ${difference}`, 105, 70, { align: "center" });
+
+      doc.save("financiamento-vs-investimento.pdf");
+    });
+  </script>
+</body>
+</html>
